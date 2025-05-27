@@ -1,0 +1,6 @@
+.vscode
+tmp
+.gitignore
+ssw
+ssw-debug
+docker-bake.hcl
