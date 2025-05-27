@@ -14,12 +14,12 @@
 volatile sig_atomic_t signal_term = false;
 volatile sig_atomic_t signal_chld = true;
 void handle_signal(int sig) {
-	if(sig == SIGTERM || sig == SIGINT) {
+	if (sig == SIGTERM || sig == SIGINT) {
 		signal_term = true;
 	} else if (sig == SIGCHLD) {
 		signal_chld = true;
 	} else if (sig == SIGPIPE) {
-		// Ignore SIGPIPE to prevent termination when writing to a closed pipe
+	// Ignore SIGPIPE to prevent termination when writing to a closed pipe
 	} else {
 		fprintf(stderr, "Unknown signal: %d\n", sig);
 	}
@@ -41,11 +41,12 @@ int main(int argc, char *argv[]) {
 	sa.sa_handler = handle_signal;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
-	if (false
-		|| sigaction(SIGTERM, &sa, NULL) == -1
-		|| sigaction(SIGINT, &sa, NULL) == -1
-		|| sigaction(SIGCHLD, &sa, NULL) == -1
-		|| sigaction(SIGPIPE, &sa, NULL) == -1
+	if (
+		false ||
+		sigaction(SIGTERM, &sa, NULL) == -1 ||
+		sigaction(SIGINT, &sa, NULL) == -1 ||
+		sigaction(SIGCHLD, &sa, NULL) == -1 ||
+		sigaction(SIGPIPE, &sa, NULL) == -1
 	) {
 		perror("sigaction");
 		return EXIT_FAILURE;
@@ -85,7 +86,7 @@ int main(int argc, char *argv[]) {
 
 	while (true) {
 		//fprintf(stderr, "debug: bytesRead=%zd, bytesOffset=%d, read_stopped=%d, child_stop_send=%d, signal_term=%d, signal_chld=%d, ended_with_newline=%d\n",
-		//	bytesRead, bytesOffset, read_stopped, child_stop_send, signal_term, signal_chld, ended_with_newline
+		//      bytesRead, bytesOffset, read_stopped, child_stop_send, signal_term, signal_chld, ended_with_newline
 		//);
 		if (bytesRead == 0 && signal_term && !child_stop_send) {
 			const char *stopMessage = "\nstop\n";
@@ -100,27 +101,28 @@ int main(int argc, char *argv[]) {
 			int status;
 			pid_t w_pid = waitpid(-1, &status, read_stopped ? 0 : WNOHANG);
 			if (w_pid == -1) {
-				if (errno == EINTR) continue;
+				if (errno == EINTR)
+					continue;
 				perror("waitpid");
 			} else if (w_pid == pid) {
 				//if (WIFEXITED(status)) {
-				//	fprintf(stderr, "Child exited with status %d\n", WEXITSTATUS(status));
+				//      fprintf(stderr, "Child exited with status %d\n", WEXITSTATUS(status));
 				//} else if (WIFSIGNALED(status)) {
-				//	fprintf(stderr, "Child killed by signal %d\n", WTERMSIG(status));
+				//      fprintf(stderr, "Child killed by signal %d\n", WTERMSIG(status));
 				//} else if (WIFSTOPPED(status)) {
-				//	fprintf(stderr, "Child stopped by signal %d\n", WSTOPSIG(status));
+				//      fprintf(stderr, "Child stopped by signal %d\n", WSTOPSIG(status));
 				//}
 				return WEXITSTATUS(status); // Return the exit status of the child process
 			} else if (w_pid != 0) {
 				// Set it back to true in the case we have more than one child that exited
 				signal_chld = true;
-
 			}
 		} else if (bytesRead == 0) {
 			bytesRead = read(STDIN_FILENO, buffer, sizeof(buffer));
 			if (bytesRead == -1) {
 				bytesRead = 0;
-				if (errno == EINTR) continue;
+				if (errno == EINTR)
+					continue;
 				perror("read");
 			} else if (bytesRead == 0) {
 				read_stopped = true;
@@ -130,9 +132,14 @@ int main(int argc, char *argv[]) {
 				}
 			}
 		} else {
-			int bytesWritten = write(pipefd[1], buffer + bytesOffset, bytesRead - bytesOffset);
+			int bytesWritten = write(
+				pipefd[1],
+				buffer + bytesOffset,
+				bytesRead - bytesOffset
+			);
 			if (bytesWritten == -1) {
-				if (errno == EINTR) continue;
+				if (errno == EINTR)
+					continue;
 				perror("write");
 				break;
 			} else {
